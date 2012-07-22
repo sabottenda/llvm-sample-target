@@ -1,0 +1,144 @@
+diff -crN llvm-3.1-org//configure llvm-3.1/configure
+*** llvm-3.1-org//configure	2012-05-12 05:48:57.000000000 +0900
+--- llvm-3.1/configure	2012-06-23 23:11:00.920291000 +0900
+***************
+*** 5310,5316 ****
+    enableval=host
+  fi
+  case "$enableval" in
+!   all) TARGETS_TO_BUILD="X86 Sparc PowerPC ARM Mips CellSPU XCore MSP430 CppBackend MBlaze PTX Hexagon" ;;
+    *)for a_target in `echo $enableval|sed -e 's/,/ /g' ` ; do
+        case "$a_target" in
+          x86)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+--- 5310,5316 ----
+    enableval=host
+  fi
+  case "$enableval" in
+!   all) TARGETS_TO_BUILD="X86 Sparc PowerPC ARM Mips CellSPU XCore MSP430 CppBackend MBlaze PTX Hexagon Sample" ;;
+    *)for a_target in `echo $enableval|sed -e 's/,/ /g' ` ; do
+        case "$a_target" in
+          x86)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+***************
+*** 5327,5332 ****
+--- 5327,5333 ----
+          hexagon)  TARGETS_TO_BUILD="Hexagon $TARGETS_TO_BUILD" ;;
+          mblaze)   TARGETS_TO_BUILD="MBlaze $TARGETS_TO_BUILD" ;;
+          ptx)      TARGETS_TO_BUILD="PTX $TARGETS_TO_BUILD" ;;
++         sample)   TARGETS_TO_BUILD="Sample $TARGETS_TO_BUILD" ;;
+          host) case "$llvm_cv_target_arch" in
+              x86)         TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+              x86_64)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+diff -crN llvm-3.1-org//include/llvm/ADT/Triple.h llvm-3.1/include/llvm/ADT/Triple.h
+*** llvm-3.1-org//include/llvm/ADT/Triple.h	2012-04-03 03:31:33.000000000 +0900
+--- llvm-3.1/include/llvm/ADT/Triple.h	2012-06-23 23:11:00.920291000 +0900
+***************
+*** 65,71 ****
+      ptx32,   // PTX: ptx (32-bit)
+      ptx64,   // PTX: ptx (64-bit)
+      le32,    // le32: generic little-endian 32-bit CPU (PNaCl / Emscripten)
+!     amdil   // amdil: amd IL
+    };
+    enum VendorType {
+      UnknownVendor,
+--- 65,72 ----
+      ptx32,   // PTX: ptx (32-bit)
+      ptx64,   // PTX: ptx (64-bit)
+      le32,    // le32: generic little-endian 32-bit CPU (PNaCl / Emscripten)
+!     amdil,   // amdil: amd IL
+!     sample
+    };
+    enum VendorType {
+      UnknownVendor,
+diff -crN llvm-3.1-org//lib/Support/Triple.cpp llvm-3.1/lib/Support/Triple.cpp
+*** llvm-3.1-org//lib/Support/Triple.cpp	2012-04-03 03:31:33.000000000 +0900
+--- llvm-3.1/lib/Support/Triple.cpp	2012-06-29 16:36:56.093556000 +0900
+***************
+*** 42,47 ****
+--- 42,48 ----
+    case ptx64:   return "ptx64";
+    case le32:    return "le32";
+    case amdil:   return "amdil";
++   case sample:   return "sample";
+    }
+  
+    llvm_unreachable("Invalid ArchType!");
+***************
+*** 660,665 ****
+--- 661,667 ----
+    case llvm::Triple::thumb:
+    case llvm::Triple::x86:
+    case llvm::Triple::xcore:
++   case llvm::Triple::sample:
+      return 32;
+  
+    case llvm::Triple::mips64:
+***************
+*** 709,714 ****
+--- 711,717 ----
+    case Triple::thumb:
+    case Triple::x86:
+    case Triple::xcore:
++   case Triple::sample:
+      // Already 32-bit.
+      break;
+  
+***************
+*** 737,742 ****
+--- 740,746 ----
+    case Triple::tce:
+    case Triple::thumb:
+    case Triple::xcore:
++   case Triple::sample:
+      T.setArch(UnknownArch);
+      break;
+  
+diff -crN llvm-3.1-org//lib/Target/LLVMBuild.txt llvm-3.1/lib/Target/LLVMBuild.txt
+*** llvm-3.1-org//lib/Target/LLVMBuild.txt	2012-03-23 14:50:46.000000000 +0900
+--- llvm-3.1/lib/Target/LLVMBuild.txt	2012-06-23 23:11:00.920291000 +0900
+***************
+*** 16,22 ****
+  ;===------------------------------------------------------------------------===;
+  
+  [common]
+! subdirectories = ARM CellSPU CppBackend Hexagon MBlaze MSP430 Mips PTX PowerPC Sparc X86 XCore
+  
+  ; This is a special group whose required libraries are extended (by llvm-build)
+  ; with the best execution engine (the native JIT, if available, or the
+--- 16,22 ----
+  ;===------------------------------------------------------------------------===;
+  
+  [common]
+! subdirectories = ARM CellSPU CppBackend Hexagon MBlaze MSP430 Mips PTX PowerPC Sparc X86 XCore Sample
+  
+  ; This is a special group whose required libraries are extended (by llvm-build)
+  ; with the best execution engine (the native JIT, if available, or the
+diff -crN llvm-3.1-org//projects/sample/configure llvm-3.1/projects/sample/configure
+*** llvm-3.1-org//projects/sample/configure	2012-04-06 04:34:15.000000000 +0900
+--- llvm-3.1/projects/sample/configure	2012-06-23 23:11:00.920291000 +0900
+***************
+*** 5254,5260 ****
+    enableval=host
+  fi
+  case "$enableval" in
+!   all) TARGETS_TO_BUILD="X86 Sparc PowerPC ARM Mips CellSPU XCore MSP430 Hexagon CppBackend MBlaze PTX" ;;
+    *)for a_target in `echo $enableval|sed -e 's/,/ /g' ` ; do
+        case "$a_target" in
+          x86)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+--- 5254,5260 ----
+    enableval=host
+  fi
+  case "$enableval" in
+!   all) TARGETS_TO_BUILD="X86 Sparc PowerPC ARM Mips CellSPU XCore MSP430 Hexagon CppBackend MBlaze PTX Sample" ;;
+    *)for a_target in `echo $enableval|sed -e 's/,/ /g' ` ; do
+        case "$a_target" in
+          x86)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+***************
+*** 5270,5275 ****
+--- 5270,5276 ----
+          cpp)      TARGETS_TO_BUILD="CppBackend $TARGETS_TO_BUILD" ;;
+          mblaze)   TARGETS_TO_BUILD="MBlaze $TARGETS_TO_BUILD" ;;
+          ptx)      TARGETS_TO_BUILD="PTX $TARGETS_TO_BUILD" ;;
++         sample)   TARGETS_TO_BUILD="Sample $TARGETS_TO_BUILD" ;;
+          host) case "$llvm_cv_target_arch" in
+              x86)         TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+              x86_64)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
