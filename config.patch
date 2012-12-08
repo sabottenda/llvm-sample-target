@@ -1,6 +1,29 @@
-diff -crN llvm-3.1-org//configure llvm-3.1/configure
-*** llvm-3.1-org//configure	2012-05-12 05:48:57.000000000 +0900
---- llvm-3.1/configure	2012-06-23 23:11:00.920291000 +0900
+diff -crN llvm-3.1.src//autoconf/configure.ac sample-target//autoconf/configure.ac
+*** llvm-3.1.src//autoconf/configure.ac	2012-05-12 05:48:57.000000000 +0900
+--- sample-target//autoconf/configure.ac	2012-11-24 10:22:55.207416000 +0900
+***************
+*** 370,375 ****
+--- 370,376 ----
+    hexagon-*)              llvm_cv_target_arch="Hexagon" ;;
+    mblaze-*)               llvm_cv_target_arch="MBlaze" ;;
+    ptx-*)                  llvm_cv_target_arch="PTX" ;;
++   sample-*)               llvm_cv_target_arch="Sample" ;;
+    *)                      llvm_cv_target_arch="Unknown" ;;
+  esac])
+  
+***************
+*** 651,656 ****
+--- 652,658 ----
+          hexagon)  TARGETS_TO_BUILD="Hexagon $TARGETS_TO_BUILD" ;;
+          mblaze)   TARGETS_TO_BUILD="MBlaze $TARGETS_TO_BUILD" ;;
+          ptx)      TARGETS_TO_BUILD="PTX $TARGETS_TO_BUILD" ;;
++         sample)   TARGETS_TO_BUILD="Sample $TARGETS_TO_BUILD" ;;
+          host) case "$llvm_cv_target_arch" in
+              x86)         TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+              x86_64)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+diff -crN llvm-3.1.src//configure sample-target//configure
+*** llvm-3.1.src//configure	2012-05-12 05:48:57.000000000 +0900
+--- sample-target//configure	2012-06-23 23:11:00.920291000 +0900
 ***************
 *** 5310,5316 ****
     enableval=host
@@ -28,9 +51,9 @@ diff -crN llvm-3.1-org//configure llvm-3.1/configure
           host) case "$llvm_cv_target_arch" in
               x86)         TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
               x86_64)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
-diff -crN llvm-3.1-org//include/llvm/ADT/Triple.h llvm-3.1/include/llvm/ADT/Triple.h
-*** llvm-3.1-org//include/llvm/ADT/Triple.h	2012-04-03 03:31:33.000000000 +0900
---- llvm-3.1/include/llvm/ADT/Triple.h	2012-06-23 23:11:00.920291000 +0900
+diff -crN llvm-3.1.src//include/llvm/ADT/Triple.h sample-target//include/llvm/ADT/Triple.h
+*** llvm-3.1.src//include/llvm/ADT/Triple.h	2012-04-03 03:31:33.000000000 +0900
+--- sample-target//include/llvm/ADT/Triple.h	2012-06-23 23:11:00.920291000 +0900
 ***************
 *** 65,71 ****
       ptx32,   // PTX: ptx (32-bit)
@@ -49,22 +72,42 @@ diff -crN llvm-3.1-org//include/llvm/ADT/Triple.h llvm-3.1/include/llvm/ADT/Trip
     };
     enum VendorType {
       UnknownVendor,
-diff -crN llvm-3.1-org//lib/Support/Triple.cpp llvm-3.1/lib/Support/Triple.cpp
-*** llvm-3.1-org//lib/Support/Triple.cpp	2012-04-03 03:31:33.000000000 +0900
---- llvm-3.1/lib/Support/Triple.cpp	2012-06-29 16:36:56.093556000 +0900
+diff -crN llvm-3.1.src//lib/Support/Triple.cpp sample-target//lib/Support/Triple.cpp
+*** llvm-3.1.src//lib/Support/Triple.cpp	2012-04-03 03:31:33.000000000 +0900
+--- sample-target//lib/Support/Triple.cpp	2012-12-08 15:55:17.336929000 +0900
 ***************
 *** 42,47 ****
 --- 42,48 ----
     case ptx64:   return "ptx64";
     case le32:    return "le32";
     case amdil:   return "amdil";
-+   case sample:   return "sample";
++   case sample:  return "sample";
     }
   
     llvm_unreachable("Invalid ArchType!");
 ***************
+*** 164,169 ****
+--- 165,171 ----
+      .Case("ptx64", ptx64)
+      .Case("le32", le32)
+      .Case("amdil", amdil)
++     .Case("sample", sample)
+      .Default(UnknownArch);
+  }
+  
+***************
+*** 253,258 ****
+--- 255,261 ----
+      .Case("ptx64", Triple::ptx64)
+      .Case("le32", Triple::le32)
+      .Case("amdil", Triple::amdil)
++     .Case("sample", Triple::sample)
+      .Default(Triple::UnknownArch);
+  }
+  
+***************
 *** 660,665 ****
---- 661,667 ----
+--- 663,669 ----
     case llvm::Triple::thumb:
     case llvm::Triple::x86:
     case llvm::Triple::xcore:
@@ -74,7 +117,7 @@ diff -crN llvm-3.1-org//lib/Support/Triple.cpp llvm-3.1/lib/Support/Triple.cpp
     case llvm::Triple::mips64:
 ***************
 *** 709,714 ****
---- 711,717 ----
+--- 713,719 ----
     case Triple::thumb:
     case Triple::x86:
     case Triple::xcore:
@@ -84,7 +127,7 @@ diff -crN llvm-3.1-org//lib/Support/Triple.cpp llvm-3.1/lib/Support/Triple.cpp
   
 ***************
 *** 737,742 ****
---- 740,746 ----
+--- 742,748 ----
     case Triple::tce:
     case Triple::thumb:
     case Triple::xcore:
@@ -92,9 +135,9 @@ diff -crN llvm-3.1-org//lib/Support/Triple.cpp llvm-3.1/lib/Support/Triple.cpp
       T.setArch(UnknownArch);
       break;
   
-diff -crN llvm-3.1-org//lib/Target/LLVMBuild.txt llvm-3.1/lib/Target/LLVMBuild.txt
-*** llvm-3.1-org//lib/Target/LLVMBuild.txt	2012-03-23 14:50:46.000000000 +0900
---- llvm-3.1/lib/Target/LLVMBuild.txt	2012-06-23 23:11:00.920291000 +0900
+diff -crN llvm-3.1.src//lib/Target/LLVMBuild.txt sample-target//lib/Target/LLVMBuild.txt
+*** llvm-3.1.src//lib/Target/LLVMBuild.txt	2012-03-23 14:50:46.000000000 +0900
+--- sample-target//lib/Target/LLVMBuild.txt	2012-06-23 23:11:00.920291000 +0900
 ***************
 *** 16,22 ****
   ;===------------------------------------------------------------------------===;
@@ -112,9 +155,9 @@ diff -crN llvm-3.1-org//lib/Target/LLVMBuild.txt llvm-3.1/lib/Target/LLVMBuild.t
   
   ; This is a special group whose required libraries are extended (by llvm-build)
   ; with the best execution engine (the native JIT, if available, or the
-diff -crN llvm-3.1-org//projects/sample/configure llvm-3.1/projects/sample/configure
-*** llvm-3.1-org//projects/sample/configure	2012-04-06 04:34:15.000000000 +0900
---- llvm-3.1/projects/sample/configure	2012-06-23 23:11:00.920291000 +0900
+diff -crN llvm-3.1.src//projects/sample/configure sample-target//projects/sample/configure
+*** llvm-3.1.src//projects/sample/configure	2012-04-06 04:34:15.000000000 +0900
+--- sample-target//projects/sample/configure	2012-06-23 23:11:00.920291000 +0900
 ***************
 *** 5254,5260 ****
     enableval=host
