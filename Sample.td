@@ -92,11 +92,31 @@ def SampleGenericItineraries : ProcessorItineraries<[ALU], [], [
 // Sample Operand Definitions.
 //===----------------------------------------------------------------------===//
 
-// Address operands
+// load/storeで利用するオペランド.20bit
+// 19-16: CPURegs Operand(base)
+// 15-0 : 符号付き16bit整数(offset)
+// printMethod: base(offset) 形式で出力
+// EncoderMethod: bit列から2つの値を取得
 def mem : Operand<i32> {
   let PrintMethod = "printMemOperand";
   let MIOperandInfo = (ops CPURegs, i16imm);
+  let EncoderMethod = "getMemEncoding";
 }
+
+// 即値ロード用のオペランド. 20bit
+// 19-0: 符号付き20bit整数
+// EncoderMethod: bit列から符号付き20bit整数を取得
+def movetarget : Operand<i32> {
+  let EncoderMethod = "getMoveTargetOpValue";
+}
+
+def calltarget  : Operand<iPTR> {
+  let EncoderMethod = "getCallTargetOpValue";
+}
+
+// (よくわからない)
+// 符号付き20bit整数?
+def immSExt20  : PatLeaf<(imm), [{ return isInt<20>(N->getSExtValue()); }]>;
 
 //===----------------------------------------------------------------------===//
 // Sample Complex Pattern Definitions.
@@ -108,14 +128,15 @@ def addr : ComplexPattern<iPTR, 2, "SelectAddr", [], []>;
 // Sample Format Definitions.
 //===----------------------------------------------------------------------===//
 
-class Format<bits<2> val> {
-  bits<2> Value = val;
+class Format<bits<3> val> {
+  bits<3> Value = val;
 }
 
 def Pseudo    : Format<0>;
-def FormReg1  : Format<1>;
-def FormReg2  : Format<2>;
-def FormReg3  : Format<3>;
+def FormReg0  : Format<1>;
+def FormReg1  : Format<2>;
+def FormReg2  : Format<3>;
+def FormReg3  : Format<4>;
 
 // Generic Sample Format
 class SampleInst<dag outs, dag ins, string asmstr, list<dag> pattern, InstrItinClass itin, Format f>
@@ -135,19 +156,30 @@ class SampleInst<dag outs, dag ins, string asmstr, list<dag> pattern, InstrItinC
   let Pattern     = pattern;
   let Itinerary   = itin;
 
-  bits<2> FormBits = Form.Value;
+  bits<3> FormBits = Form.Value;
 
   let DecoderNamespace = "Sample";
 
   field bits<32> SoftFail = 0;
 }
 
+// FormReg0
+class SampleInstFormReg0<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern, InstrItinClass itin>
+      : SampleInst<outs, ins, asmstr, pattern, itin, FormReg0>
+{
+  bits<24> other;
+
+  let Opcode = op;
+
+  let Inst{23-0} = other;
+}
+
 // FormReg1
 class SampleInstFormReg1<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern, InstrItinClass itin>
-      : SampleInst<outs, ins, asmstr, pattern, itin, FormReg3>
+      : SampleInst<outs, ins, asmstr, pattern, itin, FormReg1>
 {
   bits<4> rc;
-  bits<20> other = 0;
+  bits<20> other;
 
   let Opcode = op;
 
@@ -162,7 +194,7 @@ class SampleInstFormReg3<bits<8> op, dag outs, dag ins, string asmstr, list<dag>
   bits<4> rc;
   bits<4> ra;
   bits<4> rb;
-  bits<12> other = 0;
+  bits<12> other;
 
   let Opcode = op;
 
@@ -173,56 +205,98 @@ class SampleInstFormReg3<bits<8> op, dag outs, dag ins, string asmstr, list<dag>
 }
 
 //===----------------------------------------------------------------------===//
+// Sample profiles and nodes
+//===----------------------------------------------------------------------===//
+
+def SDT_SampleRet          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
+def SampleRet : SDNode<"SampleISD::Ret", SDT_SampleRet, 
+                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+
+def SDT_SampleCall      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
+
+def SampleCall : SDNode<"SampleISD::Call",SDT_SampleCall,
+                         [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
+                          SDNPVariadic]>;
+
+//===----------------------------------------------------------------------===//
 // Instructions specific format
 //===----------------------------------------------------------------------===//
 
 // Arithmetic and logical instructions with 3 register operands.
-class ArithLogicInst<bits<8> op, string instr_asm, SDNode OpNode, InstrItinClass itin, RegisterClass RC>
+class ArithLogicInst<bits<8> op, string asmstr, SDNode OpNode, InstrItinClass itin, RegisterClass RC>
   : SampleInstFormReg3<op, (outs RC:$rc), (ins RC:$ra, RC:$rb),
-                      !strconcat(instr_asm, "\t$rc, $ra, $rb"),
+                      !strconcat(asmstr, "\t$rc, $ra, $rb"),
                       [(set RC:$rc, (OpNode RC:$ra, RC:$rb))], itin> {
 }
 
+// Load/Store common form
+// DecoderMethod: objdumpなどでバイナリから値をデコードする
 class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern, InstrItinClass itin>
       : SampleInstFormReg1<op, outs, ins, asmstr, pattern, itin> {
   bits<20> addr;
   let Inst{19-0}  = addr;
+  let DecoderMethod = "DecodeMem";
 }
 
-
+// Load
 let canFoldAsLoad = 1 in
 class LoadM<bits<8> op, string asmstr, RegisterClass RC>:
   FMem<op, (outs RC:$rc), (ins mem:$addr),
      !strconcat(asmstr, "\t$rc, $addr"),
      [(set RC:$rc, (load addr:$addr))], IICAlu>;
 
+// Store
 class StoreM<bits<8> op, string asmstr, RegisterClass RC>:
-  FMem<op, (outs), (ins i8imm:$addr, RC:$rt),
-     !strconcat(asmstr, "\t$rt, $addr"),
-     [(store RC:$rt, addr:$addr)], IICAlu>;
+  FMem<op, (outs), (ins RC:$rc, mem:$addr),
+     !strconcat(asmstr, "\t$rc, $addr"),
+     [(store RC:$rc, addr:$addr)], IICAlu>;
 
-//===----------------------------------------------------------------------===//
-// Sample profiles and nodes
-//===----------------------------------------------------------------------===//
+// Return
+class RetInst<bits<8> op, string asmstr>:
+  SampleInstFormReg1<op, (outs), (ins CPURegs:$rc),
+     !strconcat(asmstr, "\t$rc"), [(SampleRet CPURegs:$rc)], IICAlu> {
+  let isBranch=1;
+  let isTerminator=1;
+  let isBarrier=1;
+  let isReturn=1;
+}
 
-def SDT_SampleRet          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
-def SampleRet : SDNode<"SampleISD::Ret", SDT_SampleRet, [SDNPHasChain,
-                     SDNPOptInGlue]>;
+// Load Immediate
+// DecoderMethod: 即値ロード用のデコード
+class LoadI<bits<8> op, string asmstr>:
+  SampleInstFormReg1<op, (outs CPURegs:$rc), (ins movetarget:$other),
+     !strconcat(asmstr, "\t$rc, $other"), [(set CPURegs:$rc, immSExt20:$other)], IICAlu> {
+  let DecoderMethod = "DecodeMoveTarget";
+}
+
+class Call<bits<8> op, string asmstr>:
+  SampleInstFormReg0<op, (outs), (ins calltarget:$other, variable_ops),
+     !strconcat(asmstr, "\t$other"), [(SampleCall imm:$other)],
+     IICAlu> {
+  let isCall=1;
+  let DecoderMethod = "DecodeCallTarget";
+}
 
 //===----------------------------------------------------------------------===//
 // Sample Instruction definition
 //===----------------------------------------------------------------------===//
 
-def ADD   : ArithLogicInst<0x03, "add",   add, IICAlu, CPURegs>;
-def SUB   : ArithLogicInst<0x04, "sub",   sub, IICAlu, CPURegs>;
-
-let isReturn=1, isTerminator=1, isCodeGenOnly=1, isBarrier=1,
-    ra=0, rb=0, other=0 in
-  def RET : SampleInstFormReg3<0x02, (outs), (ins CPURegs:$target),
-                  "jump\t$target", [(SampleRet CPURegs:$target)], IICAlu>;
-
 def LOAD  : LoadM<0x00, "load", CPURegs>;
 def STORE : StoreM<0x01, "store", CPURegs>;
+def MOVE  : LoadI<0x02, "move">;
+def CALL  : Call<0x03, "call">;
+def RET   : RetInst<0x04, "ret">;
+def ADD   : ArithLogicInst<0x05, "add", add, IICAlu, CPURegs>;
+def SUB   : ArithLogicInst<0x06, "sub", sub, IICAlu, CPURegs>;
+
+//===----------------------------------------------------------------------===//
+//  Arbitrary patterns that map to one or more instructions
+//===----------------------------------------------------------------------===//
+
+def : Pat<(SampleCall (i32 tglobaladdr:$dst)),
+          (CALL tglobaladdr:$dst)>;
+def : Pat<(SampleCall (i32 texternalsym:$dst)),
+          (CALL texternalsym:$dst)>;
 
 //===----------------------------------------------------------------------===//
 // Sample Calling Convention

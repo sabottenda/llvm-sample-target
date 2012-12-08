@@ -27,15 +27,56 @@
 
 using namespace llvm;
 
-bool SampleFrameLowering::hasFP(const MachineFunction &MF) const {
+bool SampleFrameLowering::
+hasFP(const MachineFunction &MF) const {
   return false;
 }
 
-void SampleFrameLowering::emitPrologue(MachineFunction &MF) const {
+void SampleFrameLowering::
+emitPrologue(MachineFunction &MF) const {
   DEBUG(dbgs() << ">> SampleFrameLowering::emitPrologue <<\n");
-  DEBUG(dbgs() << ">>> Not implemented yet\n");
+
+  MachineBasicBlock &MBB   = MF.front();
+  MachineFrameInfo *MFI = MF.getFrameInfo();
+
+  const SampleRegisterInfo *RegInfo =
+    static_cast<const SampleRegisterInfo*>(MF.getTarget().getRegisterInfo());
+  const SampleInstrInfo &TII =
+    *static_cast<const SampleInstrInfo*>(MF.getTarget().getInstrInfo());
+
+  MachineBasicBlock::iterator MBBI = MBB.begin();
+  DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
+
+  // allocate fixed size for simplicity
+  uint64_t StackSize = 4 * 16;
+
+   // Update stack size
+  MFI->setStackSize(StackSize);
+
+  BuildMI(MBB, MBBI, dl, TII.get(Sample::MOVE), Sample::T0)
+      .addImm(-StackSize);
+  BuildMI(MBB, MBBI, dl, TII.get(Sample::ADD), Sample::SP)
+      .addReg(Sample::SP)
+      .addReg(Sample::T0);
 }
-void SampleFrameLowering::emitEpilogue(MachineFunction &MF,
-                                       MachineBasicBlock &MBB) const {
+
+void SampleFrameLowering::
+emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const {
   DEBUG(dbgs() << ">> SampleFrameLowering::emitEpilogue <<\n");
+
+  MachineBasicBlock::iterator MBBI = MBB.getLastNonDebugInstr();
+  MachineFrameInfo *MFI            = MF.getFrameInfo();
+  const SampleInstrInfo &TII =
+    *static_cast<const SampleInstrInfo*>(MF.getTarget().getInstrInfo());
+  DebugLoc dl = MBBI->getDebugLoc();
+
+  // Get the number of bytes from FrameInfo
+  uint64_t StackSize = MFI->getStackSize();
+
+  // Adjust stack.
+  BuildMI(MBB, MBBI, dl, TII.get(Sample::MOVE), Sample::T0)
+      .addImm(StackSize);
+  BuildMI(MBB, MBBI, dl, TII.get(Sample::ADD), Sample::SP)
+      .addReg(Sample::SP)
+      .addReg(Sample::T0);
 }

@@ -31,16 +31,17 @@ class LLVM_LIBRARY_VISIBILITY SampleMCInstLower {
   MCContext &Ctx;
   Mangler &Mang;
   AsmPrinter &Printer;
-public:
+
+ public:
   SampleMCInstLower(MCContext &ctx, Mangler &mang, AsmPrinter &printer)
     : Ctx(ctx), Mang(mang), Printer(printer) {}
   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
 
+ private:
   MCOperand LowerOperand(const MachineOperand& MO, unsigned offset = 0) const;
   MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                MachineOperandType MOTy, unsigned Offset) const;
 };
-
-}
+} // end of namespace llvm
 
 #endif

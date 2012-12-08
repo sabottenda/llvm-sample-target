@@ -87,7 +87,6 @@ private:
   // Complex Pattern.
   bool SelectAddr(SDValue N, SDValue &Base, SDValue &Disp);
 };
-
 }
 
 /// ComplexPattern used on SampleInstrInfo
@@ -100,7 +99,8 @@ SelectAddr(SDValue N, SDValue &Base, SDValue &Disp) {
 
 /// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions
-SDNode* SampleDAGToDAGISel::Select(SDNode *Node) {
+SDNode* SampleDAGToDAGISel::
+Select(SDNode *Node) {
   // Select the default instruction
   SDNode *ResNode = SelectCode(Node);
 

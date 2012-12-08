@@ -33,26 +33,25 @@
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/Target/Mangler.h"
 #include "llvm/Support/TargetRegistry.h"
-#include "llvm/Support/raw_ostream.h"
 using namespace llvm;
 
 namespace {
-  class SampleAsmPrinter : public AsmPrinter {
-  public:
-    SampleAsmPrinter(TargetMachine &TM, MCStreamer &Streamer)
+class SampleAsmPrinter : public AsmPrinter {
+ public:
+  SampleAsmPrinter(TargetMachine &TM, MCStreamer &Streamer)
       : AsmPrinter(TM, Streamer) {}
 
-    virtual const char *getPassName() const {
-      return "Sample Assembly Printer";
-    }
+  virtual const char *getPassName() const {
+    return "Sample Assembly Printer";
+  }
 
-    // should overwrite functions
-    void EmitInstruction(const MachineInstr *MI) /*override*/;
-  };
+  // should overwrite functions
+  void EmitInstruction(const MachineInstr *MI) /*override*/;
+};
 } // end of anonymous namespace
 
-
-void SampleAsmPrinter::EmitInstruction(const MachineInstr *MI) {
+void SampleAsmPrinter::
+EmitInstruction(const MachineInstr *MI) {
   dbgs() << ">> SampleAsmPinter::EmitInstruction <<\n";
   MI->dump();
   SampleMCInstLower MCInstLowering(OutContext, *Mang, *this);

@@ -15,8 +15,6 @@
 #include "llvm/ADT/StringRef.h"
 using namespace llvm;
 
-void SampleMCAsmInfo::anchor() { }
-
 SampleMCAsmInfo::SampleMCAsmInfo(const Target &T, StringRef TT) {
   PointerSize = 4;
 

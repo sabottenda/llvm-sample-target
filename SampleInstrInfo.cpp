@@ -86,6 +86,21 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                     const TargetRegisterClass *RC,
                     const TargetRegisterInfo *TRI) const {
   DEBUG(dbgs() << ">> SampleInstrInfo::storeRegToStackSlot <<\n");
+
+  DebugLoc DL;
+  if (I != MBB.end()) DL = I->getDebugLoc();
+  MachineFunction &MF = *MBB.getParent();
+  MachineFrameInfo &MFI = *MF.getFrameInfo();
+
+  MachineMemOperand *MMO =
+    MF.getMachineMemOperand(MachinePointerInfo::getFixedStack(FI),
+                            MachineMemOperand::MOStore,
+                            MFI.getObjectSize(FI),
+                            MFI.getObjectAlignment(FI));
+
+  BuildMI(MBB, I, DL, get(Sample::STORE))
+      .addReg(SrcReg, getKillRegState(isKill))
+      .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
 }
 
 void SampleInstrInfo::
@@ -131,11 +146,11 @@ InsertBranch(MachineBasicBlock &MBB, MachineBasicBlock *TBB,
              MachineBasicBlock *FBB,
              const SmallVectorImpl<MachineOperand> &Cond,
              DebugLoc DL) const {
-  llvm_unreachable("Target didn't implement TargetInstrInfo::InsertBranch!");
+  llvm_unreachable("Target doesn't implement SampleInstrInfo::InsertBranch!");
 }
 
 unsigned SampleInstrInfo::
 RemoveBranch(MachineBasicBlock &MBB) const
 {
-  llvm_unreachable("Target didn't implement TargetInstrInfo::InsertBranch!");
+  llvm_unreachable("Target doesn't implement SampleInstrInfo::RemoveBranch");
 }

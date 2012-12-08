@@ -24,7 +24,7 @@ namespace llvm {
 class StringRef;
 
 class SampleSubtarget : public SampleGenSubtargetInfo {
-  virtual void anchor();
+  virtual void anchor() {};
   bool ExtendedInsts;
 public:
   /// This constructor initializes the data members to match that

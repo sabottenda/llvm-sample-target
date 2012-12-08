@@ -39,7 +39,7 @@ SampleTargetMachine(const Target &T, StringRef Triple,
 namespace {
 /// Sample Code Generator Pass Configuration Options.
 class SamplePassConfig : public TargetPassConfig {
-public:
+ public:
   SamplePassConfig(SampleTargetMachine *TM, PassManagerBase &PM)
     : TargetPassConfig(TM, PM) {}
 

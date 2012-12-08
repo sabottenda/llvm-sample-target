@@ -27,48 +27,47 @@
 
 namespace llvm {
 
-    class Module;
+class Module;
 
-    class SampleTargetMachine : public LLVMTargetMachine {
-        const TargetData DataLayout;
-        SampleSubtarget Subtarget;
-        SampleInstrInfo InstrInfo;
-        SampleFrameLowering FrameLowering;
-        SampleTargetLowering TLInfo;
-        SampleSelectionDAGInfo TSInfo;
+class SampleTargetMachine : public LLVMTargetMachine {
+  const TargetData DataLayout;
+  SampleSubtarget Subtarget;
+  SampleInstrInfo InstrInfo;
+  SampleFrameLowering FrameLowering;
+  SampleTargetLowering TLInfo;
+  SampleSelectionDAGInfo TSInfo;
 
-    public:
-        SampleTargetMachine(const Target &T, StringRef TT,
-                            StringRef CPU, StringRef FS, const TargetOptions &Options,
-                            Reloc::Model RM, CodeModel::Model CM,
-                            CodeGenOpt::Level OL);
+ public:
+  SampleTargetMachine(const Target &T, StringRef TT,
+                      StringRef CPU, StringRef FS, const TargetOptions &Options,
+                      Reloc::Model RM, CodeModel::Model CM,
+                      CodeGenOpt::Level OL);
 
-        virtual const SampleInstrInfo *getInstrInfo() const {
-            return &InstrInfo;
-        }
-        virtual const SampleSubtarget *getSubtargetImpl() const {
-            return &Subtarget;
-        }
-        virtual const TargetRegisterInfo *getRegisterInfo() const {
-            return &InstrInfo.getRegisterInfo();
-        }
-        virtual const TargetData *getTargetData() const {
-            return &DataLayout;
-        }
-        virtual const SampleTargetLowering *getTargetLowering() const {
-            return &TLInfo;
-        }
-        virtual const SampleFrameLowering *getFrameLowering() const{
-            return &FrameLowering;
-        }
-        virtual const SampleSelectionDAGInfo* getSelectionDAGInfo() const {
-            return &TSInfo;
-        }
+  virtual const SampleInstrInfo *getInstrInfo() const {
+    return &InstrInfo;
+  }
+  virtual const SampleSubtarget *getSubtargetImpl() const {
+    return &Subtarget;
+  }
+  virtual const SampleRegisterInfo *getRegisterInfo() const {
+    return &InstrInfo.getRegisterInfo();
+  }
+  virtual const TargetData *getTargetData() const {
+    return &DataLayout;
+  }
+  virtual const SampleTargetLowering *getTargetLowering() const {
+    return &TLInfo;
+  }
+  virtual const SampleFrameLowering *getFrameLowering() const{
+    return &FrameLowering;
+  }
+  virtual const SampleSelectionDAGInfo* getSelectionDAGInfo() const {
+    return &TSInfo;
+  }
 
-        // Pass Pipeline Configuration
-        virtual TargetPassConfig *createPassConfig(PassManagerBase &PM);
-    };
-
+  // Pass Pipeline Configuration
+  virtual TargetPassConfig *createPassConfig(PassManagerBase &PM);
+};
 } // end namespace llvm
 
 #endif

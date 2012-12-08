@@ -21,12 +21,10 @@
 
 using namespace llvm;
 
-void SampleSubtarget::anchor() { }
-
 SampleSubtarget::SampleSubtarget(const std::string &TT,
                                  const std::string &CPU,
-                                 const std::string &FS) :
-  SampleGenSubtargetInfo(TT, CPU, FS) {
+                                 const std::string &FS)
+    : SampleGenSubtargetInfo(TT, CPU, FS) {
   std::string CPUName = "generic";
 
   // Parse features string.

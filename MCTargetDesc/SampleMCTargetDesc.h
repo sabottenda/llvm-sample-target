@@ -29,6 +29,15 @@ class Target;
 class raw_ostream;
 
 extern Target TheSampleTarget;
+
+MCCodeEmitter *createSampleMCCodeEmitter(const MCInstrInfo &MCII,
+                                         const MCSubtargetInfo &STI,
+                                         MCContext &Ctx);
+
+MCAsmBackend *createSampleAsmBackend(const Target &T, StringRef TT);
+
+MCObjectWriter *createSampleELFObjectWriter(raw_ostream &OS,
+                                            uint8_t OSABI);
 } // End llvm namespace
 
 // Defines symbolic names for Sample registers.  This defines a mapping from

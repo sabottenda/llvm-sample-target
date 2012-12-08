@@ -32,7 +32,7 @@ MCOperand SampleMCInstLower::
 LowerSymbolOperand(const MachineOperand &MO,
                    MachineOperandType MOTy,
                    unsigned Offset) const {
-  dbgs() << ">> LowerSymbolOperand <<\n";
+  DEBUG(dbgs() << ">> LowerSymbolOperand <<\n");
   const MCSymbol *Symbol;
 
   switch(MO.getTargetFlags()) {
@@ -80,8 +80,8 @@ LowerSymbolOperand(const MachineOperand &MO,
 
 MCOperand SampleMCInstLower::
 LowerOperand(const MachineOperand& MO, unsigned offset) const {
-  dbgs() << ">>> LowerOperand:" << MO 
-         << " type:" << MO.getType() << "\n";
+  DEBUG(dbgs() << ">>> LowerOperand:" << MO 
+        << " type:" << MO.getType() << "\n");
 
   MachineOperandType MOTy = MO.getType();
   switch (MOTy) {
@@ -108,7 +108,7 @@ LowerOperand(const MachineOperand& MO, unsigned offset) const {
 
 void SampleMCInstLower::
 Lower(const MachineInstr *MI, MCInst &OutMI) const {
-  dbgs() << ">> SampleMCInstLower::Lower <<\n";
+  DEBUG(dbgs() << ">> SampleMCInstLower::Lower <<\n");
   OutMI.setOpcode(MI->getOpcode());
 
   for (unsigned i = 0, e = MI->getNumOperands(); i != e; ++i) {

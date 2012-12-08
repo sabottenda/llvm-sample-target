@@ -16,8 +16,6 @@
 using namespace llvm;
 
 SampleSelectionDAGInfo::SampleSelectionDAGInfo(const SampleTargetMachine &TM)
-  : TargetSelectionDAGInfo(TM) {
-}
+    : TargetSelectionDAGInfo(TM) {}
 
-SampleSelectionDAGInfo::~SampleSelectionDAGInfo() {
-}
+SampleSelectionDAGInfo::~SampleSelectionDAGInfo() {}

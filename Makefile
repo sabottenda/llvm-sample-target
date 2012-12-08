@@ -18,7 +18,7 @@ BUILT_SOURCES = SampleGenRegisterInfo.inc SampleGenInstrInfo.inc \
                 SampleGenSubtargetInfo.inc SampleGenMCCodeEmitter.inc \
                 SampleGenEDInfo.inc SampleGenDisassemblerTables.inc
 
-DIRS = InstPrinter TargetInfo MCTargetDesc
+DIRS = InstPrinter Disassembler TargetInfo MCTargetDesc
 
 include $(LEVEL)/Makefile.common
 

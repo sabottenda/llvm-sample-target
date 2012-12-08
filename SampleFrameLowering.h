@@ -11,15 +11,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SAMPLE_FRAMEINFO_H
-#define SAMPLE_FRAMEINFO_H
+#ifndef SAMPLE_FRAMELOWERING_H
+#define SAMPLE_FRAMELOWERING_H
 
 #include "Sample.h"
 #include "SampleSubtarget.h"
 #include "llvm/Target/TargetFrameLowering.h"
 
 namespace llvm {
-  class SampleSubtarget;
+class SampleSubtarget;
 
 class SampleFrameLowering : public TargetFrameLowering {
 protected:
@@ -36,7 +36,6 @@ public:
   void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const /*override*/;
   bool hasFP(const MachineFunction &MF) const /*override*/;
 };
-
 } // End llvm namespace
 
 #endif

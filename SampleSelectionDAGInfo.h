@@ -25,7 +25,6 @@ public:
   explicit SampleSelectionDAGInfo(const SampleTargetMachine &TM);
   ~SampleSelectionDAGInfo();
 };
-
-}
+} // end of namespace llvm
 
 #endif

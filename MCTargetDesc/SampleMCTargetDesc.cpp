@@ -80,16 +80,16 @@ static MCInstPrinter *createSampleMCInstPrinter(const Target &T,
   return new SampleInstPrinter(MAI, MII, MRI);
 }
 
-// static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
-//                                     MCContext &Ctx, MCAsmBackend &MAB,
-//                                     raw_ostream &_OS,
-//                                     MCCodeEmitter *_Emitter,
-//                                     bool RelaxAll,
-//                                     bool NoExecStack) {
-//   Triple TheTriple(TT);
+static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
+                                    MCContext &Ctx, MCAsmBackend &MAB,
+                                    raw_ostream &_OS,
+                                    MCCodeEmitter *_Emitter,
+                                    bool RelaxAll,
+                                    bool NoExecStack) {
+  Triple TheTriple(TT);
 
-//   return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
-// }
+  return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
+}
 
 extern "C" void LLVMInitializeSampleTargetMC() {
   // Register the MC asm info.
@@ -102,13 +102,13 @@ extern "C" void LLVMInitializeSampleTargetMC() {
   // Register the MC register info.
   TargetRegistry::RegisterMCRegInfo(TheSampleTarget, createSampleMCRegisterInfo);
   // Register the MC Code Emitter
-  // TargetRegistry::RegisterMCCodeEmitter(TheSampleTarget,
-  //                                       createSampleMCCodeEmitterEB);
+  TargetRegistry::RegisterMCCodeEmitter(TheSampleTarget,
+                                        createSampleMCCodeEmitter);
   // Register the object streamer.
-  // TargetRegistry::RegisterMCObjectStreamer(TheSampleTarget, createMCStreamer);
+  TargetRegistry::RegisterMCObjectStreamer(TheSampleTarget, createMCStreamer);
   // Register the asm backend.
-  // TargetRegistry::RegisterMCAsmBackend(TheSampleTarget,
-  //                                      createSampleAsmBackendEB32);
+  TargetRegistry::RegisterMCAsmBackend(TheSampleTarget,
+                                       createSampleAsmBackend);
   // Register the MC subtarget info.
   TargetRegistry::RegisterMCSubtargetInfo(TheSampleTarget,
                                           createSampleMCSubtargetInfo);

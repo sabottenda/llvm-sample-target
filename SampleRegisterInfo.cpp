@@ -41,7 +41,8 @@
 
 using namespace llvm;
 
-SampleRegisterInfo::SampleRegisterInfo(const TargetInstrInfo &tii)
+SampleRegisterInfo::
+SampleRegisterInfo(const TargetInstrInfo &tii)
   : SampleGenRegisterInfo(Sample::RA), TII(tii) { }
 
 //===----------------------------------------------------------------------===//
@@ -50,14 +51,12 @@ SampleRegisterInfo::SampleRegisterInfo(const TargetInstrInfo &tii)
 
 /// Sample Callee Saved Registers
 const uint16_t* SampleRegisterInfo::
-getCalleeSavedRegs(const MachineFunction *MF) const
-{
+getCalleeSavedRegs(const MachineFunction *MF) const {
     return CSR_SingleFloatOnly_SaveList;
 }
 
-const uint32_t*
-SampleRegisterInfo::getCallPreservedMask(CallingConv::ID) const
-{  
+const uint32_t* SampleRegisterInfo::
+getCallPreservedMask(CallingConv::ID) const {  
     return CSR_SingleFloatOnly_RegMask;
 }
 

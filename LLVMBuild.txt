@@ -17,7 +17,7 @@
 
 [common]
 ;subdirectories = AsmParser Disassembler InstPrinter MCTargetDesc TargetInfo
-subdirectories = InstPrinter MCTargetDesc TargetInfo
+subdirectories = Disassembler InstPrinter MCTargetDesc TargetInfo
 
 [component_0]
 type = TargetGroup
@@ -25,7 +25,7 @@ name = Sample
 parent = Target
 ;has_asmparser = 1
 has_asmprinter = 1
-;has_disassembler = 1
+has_disassembler = 1
 ;has_jit = 1
 
 [component_1]
