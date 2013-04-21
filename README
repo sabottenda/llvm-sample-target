@@ -1,15 +1,15 @@
 ## setup sample target
-$ wget http://llvm.org/releases/3.1/llvm-3.1.src.tar.gz
-$ tar zxf llvm-3.1.src.tar.gz
-$ cd llvm-3.1.src/lib/Target
+$ wget http://llvm.org/releases/3.2/llvm-3.2.src.tar.gz
+$ tar zxf llvm-3.2.src.tar.gz
+$ cd llvm-3.2.src/lib/Target
 $ git clone git://github.com/sabottenda/llvm-sample-target.git Sample
-$ cd - && cd llvm-3.1.src
+$ cd - && cd llvm-3.2.src
 $ patch -p1 < ./lib/Target/Sample/config.patch
 
 ## compile and install
 $ cd -
 $ mkdir build
 $ cd build
-$ ../llvm-3.1.src/configure --prefix=/opt/llvm --enable-debug-runtime --enable-assertions --enable-debug-symbols --disable-optimized --enable-debug-runtime
+$ ../llvm-3.2.src/configure --prefix=/opt/llvm --enable-debug-runtime --enable-assertions --enable-debug-symbols --disable-optimized --enable-debug-runtime
 $ make -j4
 $ sudo make install
