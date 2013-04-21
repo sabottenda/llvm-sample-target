@@ -54,13 +54,7 @@ class SampleTargetLowering : public TargetLowering {
                        SmallVectorImpl<SDValue> &InVals) const;
 
   virtual SDValue
-  LowerCall(SDValue InChain, SDValue Callee,
-            CallingConv::ID CallConv, bool isVarArg,
-            bool doesNotRet, bool &isTailCall,
-            const SmallVectorImpl<ISD::OutputArg> &Outs,
-            const SmallVectorImpl<SDValue> &OutVals,
-            const SmallVectorImpl<ISD::InputArg> &Ins,
-            DebugLoc dl, SelectionDAG &DAG,
+  LowerCall(CallLoweringInfo &CLI,
             SmallVectorImpl<SDValue> &InVals) const;
 
   virtual SDValue

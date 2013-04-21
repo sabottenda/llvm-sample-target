@@ -52,8 +52,8 @@ class SampleAsmPrinter : public AsmPrinter {
 
 void SampleAsmPrinter::
 EmitInstruction(const MachineInstr *MI) {
-  dbgs() << ">> SampleAsmPinter::EmitInstruction <<\n";
-  MI->dump();
+  DEBUG(dbgs() << ">> SampleAsmPinter::EmitInstruction <<\n");
+  DEBUG(MI->dump());
   SampleMCInstLower MCInstLowering(OutContext, *Mang, *this);
   MCInst TmpInst;
   MCInstLowering.Lower(MI, TmpInst);

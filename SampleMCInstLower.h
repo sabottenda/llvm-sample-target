@@ -30,7 +30,7 @@ class LLVM_LIBRARY_VISIBILITY SampleMCInstLower {
   typedef MachineOperand::MachineOperandType MachineOperandType;
   MCContext &Ctx;
   Mangler &Mang;
-  AsmPrinter &Printer;
+  const AsmPrinter &Printer;
 
  public:
   SampleMCInstLower(MCContext &ctx, Mangler &mang, AsmPrinter &printer)
@@ -38,9 +38,9 @@ class LLVM_LIBRARY_VISIBILITY SampleMCInstLower {
   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
 
  private:
-  MCOperand LowerOperand(const MachineOperand& MO, unsigned offset = 0) const;
+  MCOperand LowerOperand(const MachineOperand& MO) const;
   MCOperand LowerSymbolOperand(const MachineOperand &MO,
-                               MachineOperandType MOTy, unsigned Offset) const;
+                               MachineOperandType MOTy) const;
 };
 } // end of namespace llvm
 

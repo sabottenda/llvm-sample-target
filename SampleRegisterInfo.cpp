@@ -32,7 +32,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/Analysis/DebugInfo.h"
+#include "llvm/DebugInfo.h"
 
 #include "MCTargetDesc/SampleMCTargetDesc.h"
 
@@ -49,12 +49,13 @@ SampleRegisterInfo(const TargetInstrInfo &tii)
 // Callee Saved Registers methods
 //===----------------------------------------------------------------------===//
 
-/// Sample Callee Saved Registers
+// 呼び出し先待避レジスタ
 const uint16_t* SampleRegisterInfo::
 getCalleeSavedRegs(const MachineFunction *MF) const {
     return CSR_SingleFloatOnly_SaveList;
 }
 
+// 呼び出し元待避レジスタ
 const uint32_t* SampleRegisterInfo::
 getCallPreservedMask(CallingConv::ID) const {  
     return CSR_SingleFloatOnly_RegMask;
@@ -63,7 +64,7 @@ getCallPreservedMask(CallingConv::ID) const {
 BitVector SampleRegisterInfo::
 getReservedRegs(const MachineFunction &MF) const {
   static const uint16_t ReservedCPURegs[] = {
-      Sample::ZERO, Sample::SP, Sample::RA,
+    Sample::ZERO, Sample::SP, Sample::RA, Sample::V0,
   };
 
   BitVector Reserved(getNumRegs());
@@ -75,51 +76,46 @@ getReservedRegs(const MachineFunction &MF) const {
   return Reserved;
 }
 
-// This function eliminate ADJCALLSTACKDOWN,
-// ADJCALLSTACKUP pseudo instructions
+// ADJCALLSTACKDOWNとADJCALLSTACKUPを単純に削除する
 void SampleRegisterInfo::
 eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
   DEBUG(dbgs() << ">> SampleRegisterInfo::eliminateCallFramePseudoInstr <<\n";);
-  llvm_unreachable("not implemented");
+  MBB.erase(I);
 }
 
-// FrameIndex represent objects inside a abstract stack.
-// We must replace FrameIndex with an stack/frame pointer
-// direct reference.
+// FrameIndexをスタックポインタに置き換える
 void SampleRegisterInfo::
 eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
                     RegScavenger *RS) const {
   DEBUG(dbgs() << ">> SampleRegisterInfo::eliminateFrameIndex <<\n";);
 
   MachineInstr &MI = *II;
-  MachineFunction &MF = *MI.getParent()->getParent();
-  MachineFrameInfo *MFI = MF.getFrameInfo();
+  const MachineFunction &MF = *MI.getParent()->getParent();
 
-  unsigned i = 0;
-  while (!MI.getOperand(i).isFI()) {
-    ++i;
-    assert(i < MI.getNumOperands() &&
-           "Instr doesn't have FrameIndex operand!");
+  unsigned opIndex;
+  for (opIndex = 0; opIndex < MI.getNumOperands(); opIndex++) {
+    if (MI.getOperand(opIndex).isFI()) break;
   }
+  assert(opIndex < MI.getNumOperands() && "Instr doesn't have FrameIndex operand!");
 
-  DEBUG(errs() << "\nFunction : " << MF.getFunction()->getName() << "\n";
-        errs() << "<--------->\n" << MI);
-
-  int FrameIndex = MI.getOperand(i).getIndex();
+  int FrameIndex = MI.getOperand(opIndex).getIndex();
   uint64_t stackSize = MF.getFrameInfo()->getStackSize();
   int64_t spOffset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
-  int64_t Offset = spOffset + stackSize + MI.getOperand(i+1).getImm();
+  int64_t Offset = spOffset + stackSize + MI.getOperand(opIndex+1).getImm();
   unsigned FrameReg = Sample::SP;
 
-  DEBUG(errs() << "FrameIndex : " << FrameIndex << "\n"
-               << "spOffset   : " << spOffset << "\n"
-               << "stackSize  : " << stackSize << "\n"
-               << "Offset     : " << Offset << "\n" << "<--------->\n");
+  DEBUG(errs() 
+        << "\nFunction : " << MF.getFunction()->getName() << "\n"
+        << "<--------->\n" << MI
+        << "FrameIndex : " << FrameIndex << "\n"
+        << "spOffset   : " << spOffset << "\n"
+        << "stackSize  : " << stackSize << "\n"
+        << "Offset     : " << Offset << "\n" << "<--------->\n");
 
   DEBUG(errs() << "Before:" << MI);
-  MI.getOperand(i).ChangeToRegister(FrameReg, false);
-  MI.getOperand(i+1).ChangeToImmediate(Offset);
+  MI.getOperand(opIndex).ChangeToRegister(FrameReg, false);
+  MI.getOperand(opIndex+1).ChangeToImmediate(Offset);
   DEBUG(errs() << "After:" << MI);
 }
 

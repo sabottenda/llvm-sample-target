@@ -21,7 +21,7 @@
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
-#include "llvm/Target/TargetData.h"
+#include "llvm/DataLayout.h"
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Support/CommandLine.h"
 
@@ -39,8 +39,6 @@ emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock &MBB   = MF.front();
   MachineFrameInfo *MFI = MF.getFrameInfo();
 
-  const SampleRegisterInfo *RegInfo =
-    static_cast<const SampleRegisterInfo*>(MF.getTarget().getRegisterInfo());
   const SampleInstrInfo &TII =
     *static_cast<const SampleInstrInfo*>(MF.getTarget().getInstrInfo());
 

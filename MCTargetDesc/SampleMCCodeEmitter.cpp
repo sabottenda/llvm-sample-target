@@ -34,7 +34,6 @@ class SampleMCCodeEmitter : public MCCodeEmitter {
   const MCInstrInfo &MCII;
   const MCSubtargetInfo &STI;
   MCContext &Ctx;
-  bool IsLittleEndian;
 
  public:
   SampleMCCodeEmitter(const MCInstrInfo &mcii, const MCSubtargetInfo &sti,
@@ -69,6 +68,7 @@ class SampleMCCodeEmitter : public MCCodeEmitter {
   unsigned getMoveTargetOpValue(const MCInst &MI, unsigned OpNo,
                                 SmallVectorImpl<MCFixup> &Fixups) const;
 
+  // call命令のオペランドのバイナリエンコーディングを取得
   unsigned getCallTargetOpValue(const MCInst &MI, unsigned OpNo,
                                 SmallVectorImpl<MCFixup> &Fixups) const;
 
@@ -77,6 +77,7 @@ class SampleMCCodeEmitter : public MCCodeEmitter {
 }  // namespace
 
 MCCodeEmitter *llvm::createSampleMCCodeEmitter(const MCInstrInfo &MCII,
+                                               const MCRegisterInfo &MRI,
                                                const MCSubtargetInfo &STI,
                                                MCContext &Ctx)
 {

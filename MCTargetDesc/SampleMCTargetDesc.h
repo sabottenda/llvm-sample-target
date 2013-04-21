@@ -23,6 +23,7 @@ class MCCodeEmitter;
 class MCContext;
 class MCInstrInfo;
 class MCObjectWriter;
+class MCRegisterInfo;
 class MCSubtargetInfo;
 class StringRef;
 class Target;
@@ -31,10 +32,11 @@ class raw_ostream;
 extern Target TheSampleTarget;
 
 MCCodeEmitter *createSampleMCCodeEmitter(const MCInstrInfo &MCII,
+                                         const MCRegisterInfo &MRI,
                                          const MCSubtargetInfo &STI,
                                          MCContext &Ctx);
 
-MCAsmBackend *createSampleAsmBackend(const Target &T, StringRef TT);
+MCAsmBackend *createSampleAsmBackend(const Target &T, StringRef TT, StringRef CPU);
 
 MCObjectWriter *createSampleELFObjectWriter(raw_ostream &OS,
                                             uint8_t OSABI);

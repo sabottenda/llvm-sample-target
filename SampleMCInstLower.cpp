@@ -25,27 +25,30 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/ADT/SmallString.h"
+#include "llvm/MC/MCSymbol.h"
 #include "llvm/Support/Debug.h"
+
 using namespace llvm;
 
 MCOperand SampleMCInstLower::
 LowerSymbolOperand(const MachineOperand &MO,
-                   MachineOperandType MOTy,
-                   unsigned Offset) const {
-  DEBUG(dbgs() << ">> LowerSymbolOperand <<\n");
-  const MCSymbol *Symbol;
+                   MachineOperandType MOTy) const {
+  DEBUG(dbgs() << ">>> LowerSymbolOperand <<<\n");
 
   switch(MO.getTargetFlags()) {
-  default: llvm_unreachable("Invalid target flag!");
-  case 0: break;
+    default: llvm_unreachable("Invalid target flag!");
+    case 0: break;
   }
 
+  const MCSymbol *Symbol;
+  unsigned Offset = 0;
   switch (MOTy) {
   case MachineOperand::MO_MachineBasicBlock:
     Symbol = MO.getMBB()->getSymbol();
     break;
   case MachineOperand::MO_GlobalAddress:
     Symbol = Mang.getSymbol(MO.getGlobal());
+    Offset = MO.getOffset();
     break;
   case MachineOperand::MO_BlockAddress:
     Symbol = Printer.GetBlockAddressSymbol(MO.getBlockAddress());
@@ -58,49 +61,47 @@ LowerSymbolOperand(const MachineOperand &MO,
     break;
   case MachineOperand::MO_ConstantPoolIndex:
     Symbol = Printer.GetCPISymbol(MO.getIndex());
-    if (MO.getOffset())
-      Offset += MO.getOffset();
+    Offset = MO.getOffset();
     break;
   default:
     llvm_unreachable("<unknown operand type>");
   }
 
-  const MCSymbolRefExpr *MCSym = MCSymbolRefExpr::Create(Symbol, Ctx);
+  const MCExpr *Expr = MCSymbolRefExpr::Create(Symbol, Ctx);
 
-  if (!Offset)
-    return MCOperand::CreateExpr(MCSym);
+  if (Offset) {
+    const MCConstantExpr *OffsetExpr =  MCConstantExpr::Create(Offset, Ctx);
+    Expr = MCBinaryExpr::CreateAdd(Expr, OffsetExpr, Ctx);
+  }
 
-  // Assume offset is never negative.
-  assert(Offset > 0);
-
-  const MCConstantExpr *OffsetExpr =  MCConstantExpr::Create(Offset, Ctx);
-  const MCBinaryExpr *AddExpr = MCBinaryExpr::CreateAdd(MCSym, OffsetExpr, Ctx);
-  return MCOperand::CreateExpr(AddExpr);
+  return MCOperand::CreateExpr(Expr);
 }
 
 MCOperand SampleMCInstLower::
-LowerOperand(const MachineOperand& MO, unsigned offset) const {
-  DEBUG(dbgs() << ">>> LowerOperand:" << MO 
+LowerOperand(const MachineOperand& MO) const {
+  DEBUG(dbgs() 
+        << ">>> LowerOperand:" << MO 
         << " type:" << MO.getType() << "\n");
 
   MachineOperandType MOTy = MO.getType();
   switch (MOTy) {
-  default: llvm_unreachable("unknown operand type");
   case MachineOperand::MO_Register:
     // Ignore all implicit register operands.
     if (MO.isImplicit()) break;
     return MCOperand::CreateReg(MO.getReg());
   case MachineOperand::MO_Immediate:
-    return MCOperand::CreateImm(MO.getImm() + offset);
+    return MCOperand::CreateImm(MO.getImm());
   case MachineOperand::MO_MachineBasicBlock:
   case MachineOperand::MO_GlobalAddress:
   case MachineOperand::MO_ExternalSymbol:
   case MachineOperand::MO_JumpTableIndex:
   case MachineOperand::MO_ConstantPoolIndex:
   case MachineOperand::MO_BlockAddress:
-    return LowerSymbolOperand(MO, MOTy, offset);
+    return LowerSymbolOperand(MO, MOTy);
   case MachineOperand::MO_RegisterMask:
     break;
+  default:
+    llvm_unreachable("unknown operand type");
  }
 
   return MCOperand();

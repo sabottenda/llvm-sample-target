@@ -111,7 +111,6 @@ public:
 void SampleAsmBackend::
 applyFixup(const MCFixup &Fixup, char *Data, unsigned DataSize,
            uint64_t Value) const {
-  DEBUG(dbgs() << "--- applyFixup ---\n");
   MCFixupKind Kind = Fixup.getKind();
   Value = adjustFixupValue((unsigned)Kind, Value);
 
@@ -122,13 +121,10 @@ applyFixup(const MCFixup &Fixup, char *Data, unsigned DataSize,
   unsigned Offset = Fixup.getOffset();
   // Number of bytes we need to fixup
   unsigned NumBytes = (getFixupKindInfo(Kind).TargetSize + 7) / 8;
-  // Used to point to big endian bytes
-  unsigned FullSize = 4;
 
   DEBUG(dbgs() << "  Offset: " << Offset << "\n");
   DEBUG(dbgs() << "  NumBytes: " << NumBytes << "\n");
   DEBUG(dbgs() << "  TargetSize: " << getFixupKindInfo(Kind).TargetSize << "\n");
-  DEBUG(dbgs() << "  FullSize: " << FullSize << "\n");
   DEBUG(dbgs() << format("  Data: 0x%08x\n", (uint32_t)Data[Offset]));
 
   // Grab current value, if any, from bits.
@@ -159,8 +155,8 @@ getFixupKindInfo(MCFixupKind Kind) const {
     // This table *must* be in same the order of fixup_* kinds in
     // SampleFixupKinds.h.
     //
-    // name                    offset  bits  flags
-    { "fixup_Sample_24",           0,     24,   0 }
+    // name                  offset    bits  flags
+    {"fixup_Sample_24",           0,     24,     0}
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -174,6 +170,7 @@ getFixupKindInfo(MCFixupKind Kind) const {
 } // namespace
 
 // MCAsmBackend
-MCAsmBackend *llvm::createSampleAsmBackend(const Target &T, StringRef TT) {
+MCAsmBackend *llvm::createSampleAsmBackend(const Target &T, StringRef TT,
+                                           StringRef CPU) {
   return new SampleAsmBackend(T, Triple(TT).getOS());
 }

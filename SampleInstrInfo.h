@@ -33,7 +33,6 @@ namespace Sample {
 class SampleInstrInfo : public SampleGenInstrInfo {
   SampleTargetMachine &TM;
   const SampleRegisterInfo RI;
-  //unsigned UncondBrOpc;
 public:
   explicit SampleInstrInfo(SampleTargetMachine &TM);
 

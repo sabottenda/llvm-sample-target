@@ -15,6 +15,7 @@
 #include "SampleSubtarget.h"
 #include "llvm/MC/EDInstInfo.h"
 #include "llvm/MC/MCDisassembler.h"
+#include "llvm/MC/MCFixedLenDisassembler.h"
 #include "llvm/Support/MemoryObject.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/MC/MCSubtargetInfo.h"
@@ -146,7 +147,8 @@ getInstruction(MCInst &instr,
     return MCDisassembler::Fail;
 
   // Calling the auto-generated decoder function.
-  Result = decodeSampleInstruction32(instr, Insn, Address, this, STI);
+  Result = decodeInstruction(DecoderTableSample32, 
+                             instr, Insn, Address, this, STI);
   if (Result != MCDisassembler::Fail) {
     Size = 4;
     return Result;
@@ -171,8 +173,8 @@ static DecodeStatus DecodeMem(MCInst &Inst,
                               uint64_t Address,
                               const void *Decoder) {
   int Offset = SignExtend32<16>(Insn & 0xffff);
-  int Reg = (int)fieldFromInstruction32(Insn, 16, 4);
-  int Base = (int)fieldFromInstruction32(Insn, 20, 4);
+  int Reg = (int)fieldFromInstruction(Insn, 16, 4);
+  int Base = (int)fieldFromInstruction(Insn, 20, 4);
 
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg]));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Base]));
@@ -186,7 +188,7 @@ static DecodeStatus DecodeMoveTarget(MCInst &Inst,
                                      uint64_t Address,
                                      const void *Decoder) {
   int Offset = SignExtend32<20>(Insn & 0xfffff);
-  int Reg = (int)fieldFromInstruction32(Insn, 20, 4);
+  int Reg = (int)fieldFromInstruction(Insn, 20, 4);
 
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg]));
   Inst.addOperand(MCOperand::CreateImm(Offset));
@@ -199,7 +201,7 @@ static DecodeStatus DecodeCallTarget(MCInst &Inst,
                                      uint64_t Address,
                                      const void *Decoder) {
 
-  unsigned CallOffset = fieldFromInstruction32(Insn, 0, 24) << 2;
+  unsigned CallOffset = fieldFromInstruction(Insn, 0, 24) << 2;
   Inst.addOperand(MCOperand::CreateImm(CallOffset));
   return MCDisassembler::Success;
 }

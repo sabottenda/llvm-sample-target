@@ -20,8 +20,8 @@
 #include "SampleSelectionDAGInfo.h"
 #include "SampleRegisterInfo.h"
 #include "SampleSubtarget.h"
+#include "llvm/DataLayout.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Support/Debug.h"
 
@@ -30,7 +30,7 @@ namespace llvm {
 class Module;
 
 class SampleTargetMachine : public LLVMTargetMachine {
-  const TargetData DataLayout;
+  const DataLayout DL;
   SampleSubtarget Subtarget;
   SampleInstrInfo InstrInfo;
   SampleFrameLowering FrameLowering;
@@ -52,8 +52,8 @@ class SampleTargetMachine : public LLVMTargetMachine {
   virtual const SampleRegisterInfo *getRegisterInfo() const {
     return &InstrInfo.getRegisterInfo();
   }
-  virtual const TargetData *getTargetData() const {
-    return &DataLayout;
+  virtual const DataLayout *getDataLayout() const {
+    return &DL;
   }
   virtual const SampleTargetLowering *getTargetLowering() const {
     return &TLInfo;

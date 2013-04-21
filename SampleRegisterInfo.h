@@ -26,11 +26,8 @@ class TargetInstrInfo;
 class Type;
 
 struct SampleRegisterInfo : public SampleGenRegisterInfo {
-    //const SampleSubtarget &Subtarget;
   const TargetInstrInfo &TII;
 
-  //SampleRegisterInfo(const SampleSubtarget &Subtarget, const TargetInstrInfo &tii);
-    //SampleRegisterInfo(const SampleSubtarget &Subtarget, const TargetInstrInfo &tii);
   SampleRegisterInfo(const TargetInstrInfo &tii);
 
   /// Code Generation virtual methods...

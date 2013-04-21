@@ -28,7 +28,7 @@
 using namespace llvm;
 
 SampleInstrInfo::SampleInstrInfo(SampleTargetMachine &tm)
-  : SampleGenInstrInfo(),
+  : SampleGenInstrInfo(Sample::ADJCALLSTACKDOWN, Sample::ADJCALLSTACKUP),
     TM(tm),
     RI(*this){}
 
@@ -42,9 +42,16 @@ const SampleRegisterInfo &SampleInstrInfo::getRegisterInfo() const {
 /// not, return 0.  This predicate must return 0 if the instruction has
 /// any side effects other than loading from the stack slot.
 unsigned SampleInstrInfo::
-isLoadFromStackSlot(const MachineInstr *MI, int &FrameIndex) const
-{
-  llvm_unreachable("not implemented");
+isLoadFromStackSlot(const MachineInstr *MI, int &FrameIndex) const {
+  unsigned Opc = MI->getOpcode();
+
+  if (Opc == Sample::LOAD       && // Load命令
+      MI->getOperand(1).isFI()  && // スタックスロット
+      MI->getOperand(2).isImm() && // 即値が0
+      MI->getOperand(2).getImm() == 0) {
+    FrameIndex = MI->getOperand(1).getIndex();
+    return MI->getOperand(0).getReg();
+  }
   return 0;
 }
 
@@ -54,9 +61,16 @@ isLoadFromStackSlot(const MachineInstr *MI, int &FrameIndex) const
 /// not, return 0.  This predicate must return 0 if the instruction has
 /// any side effects other than storing to the stack slot.
 unsigned SampleInstrInfo::
-isStoreToStackSlot(const MachineInstr *MI, int &FrameIndex) const
-{
-  llvm_unreachable("not implemented");
+isStoreToStackSlot(const MachineInstr *MI, int &FrameIndex) const {
+  unsigned Opc = MI->getOpcode();
+
+  if (Opc == Sample::STORE      && // Store命令
+      MI->getOperand(1).isFI()  && // スタックスロット
+      MI->getOperand(2).isImm() && // 即値が0
+      MI->getOperand(2).getImm() == 0) {
+    FrameIndex = MI->getOperand(1).getIndex();
+    return MI->getOperand(0).getReg();
+  }
   return 0;
 }
 
@@ -138,7 +152,8 @@ AnalyzeBranch(MachineBasicBlock &MBB,
               SmallVectorImpl<MachineOperand> &Cond,
               bool AllowModify) const
 {
-  return false;
+  // 未実装の場合はtrueを返す
+  return true;
 }
 
 unsigned SampleInstrInfo::

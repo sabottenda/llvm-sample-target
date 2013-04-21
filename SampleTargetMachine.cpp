@@ -30,7 +30,7 @@ SampleTargetMachine(const Target &T, StringRef Triple,
                     Reloc::Model RM, CodeModel::Model CM,
                     CodeGenOpt::Level OL)
     : LLVMTargetMachine(T, Triple, CPU, FS, Options, RM, CM, OL),
-      DataLayout("e-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32"),
+      DL("e-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32"),
       Subtarget(Triple, CPU, FS),
       InstrInfo(*this),
       FrameLowering(Subtarget),
@@ -57,6 +57,6 @@ TargetPassConfig *SampleTargetMachine::createPassConfig(PassManagerBase &PM) {
 
 bool SamplePassConfig::addInstSelector() {
   // Install an instruction selector.
-  PM->add(createSampleISelDag(getSampleTargetMachine()));
+  addPass(createSampleISelDag(getSampleTargetMachine()));
   return false;
 }

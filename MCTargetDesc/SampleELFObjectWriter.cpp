@@ -58,7 +58,6 @@ GetRelocType(const MCValue &Target,
              bool IsPCRel,
              bool IsRelocWithSymbol,
              int64_t Addend) const {
-  DEBUG(dbgs() << ">> GetRelocType\n");
   // determine the type of the relocation
   unsigned Type = (unsigned)ELF::R_MIPS_NONE;
   unsigned Kind = (unsigned)Fixup.getKind();

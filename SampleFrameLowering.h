@@ -22,10 +22,10 @@ namespace llvm {
 class SampleSubtarget;
 
 class SampleFrameLowering : public TargetFrameLowering {
-protected:
+ protected:
   const SampleSubtarget &STI;
 
-public:
+ public:
   explicit SampleFrameLowering(const SampleSubtarget &sti)
       : TargetFrameLowering(StackGrowsDown, 8, 0), STI(sti) {
   }

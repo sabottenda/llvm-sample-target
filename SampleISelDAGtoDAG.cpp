@@ -49,7 +49,7 @@ namespace {
 class SampleDAGToDAGISel : public SelectionDAGISel {
 
   /// TM - Keep a reference to SampleTargetMachine.
-  SampleTargetMachine &TM;
+  const SampleTargetMachine &TM;
 
   /// Subtarget - Keep a pointer to the SampleSubtarget around so that we can
   /// make the right decision when generating code for different targets.
@@ -85,15 +85,23 @@ private:
   SDNode *Select(SDNode *N) /*override*/;
 
   // Complex Pattern.
-  bool SelectAddr(SDValue N, SDValue &Base, SDValue &Disp);
+  bool SelectAddr(SDValue N, SDValue &Base, SDValue &Offset);
 };
 }
 
 /// ComplexPattern used on SampleInstrInfo
 /// Used on Sample Load/Store instructions
 bool SampleDAGToDAGISel::
-SelectAddr(SDValue N, SDValue &Base, SDValue &Disp) {
-  llvm_unreachable("Not implemented yet");
+SelectAddr(SDValue N, SDValue &Base, SDValue &Offset) {
+  EVT ValTy = N.getValueType();
+
+  if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(N)) {
+    Base   = CurDAG->getTargetFrameIndex(FIN->getIndex(), ValTy);
+    Offset = CurDAG->getTargetConstant(0, ValTy);
+    return true;
+  }
+
+  llvm_unreachable("Unknown pattern");
   return true;
 }
 
